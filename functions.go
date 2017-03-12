@@ -23,17 +23,15 @@ func getData() []byte {
 	sensor := bmp180.New(bus)
 
 	tempc, _ := sensor.Temperature()
-	tempf := (tempc*(9/5)+32)
+	tempf := tempc*(9/5)+32
 	altitude, _ := sensor.Altitude()
 	pressure, _ := sensor.Pressure()
 
-	temperature := Temps{
-		Fahrenheit: tempf,
-		Celsius: tempc,
-	}
-
 	data := SensorData{
-		Temp: temperature,
+		Temp: Temps{
+			Fahrenheit: tempf,
+			Celsius: tempc,
+		},
 		Pressure: pressure,
 		Altitude: altitude,
 	}
