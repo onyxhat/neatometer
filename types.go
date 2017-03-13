@@ -6,8 +6,8 @@ type Temps struct {
 }
 
 type SensorData struct {
-	ID	 string		`json:"id"`
-	Temp	 Temps		`json:"temp"`
-	Pressure int		`json:"pressure"`
-	Altitude float64	`json:"altitude"`
+	ID	 	string	`json:"id"`
+	Temperature	Temps	`json:"temperature"`
+	Pressure	int	`json:"pressure"`
+	Altitude	float64	`json:"altitude"`
 }
