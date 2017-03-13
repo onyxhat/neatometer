@@ -42,7 +42,7 @@ func getData() []byte {
 
 	data := SensorData{
 		ID: hostInfo.HostID,
-		Temp: Temps{
+		Temperature: Temps{
 			Fahrenheit: tempf,
 			Celsius: tempc,
 		},
