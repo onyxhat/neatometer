@@ -6,6 +6,9 @@ import (
 	"github.com/kardianos/osext"
 	config "github.com/spf13/viper"
 	"net/http"
+	"runtime"
+	"sync"
+	"time"
 )
 
 func init() {
@@ -19,13 +22,43 @@ func init() {
 	config.ReadInConfig()
 
 	config.SetDefault("Binding", "0.0.0.0:8080")
+	config.SetDefault("esURL", "http://localhost:9200")
+	config.SetDefault("esIndex", "NeatoMeter")
 }
 
 func main() {
-	log.Info("Listening at http://" + config.GetString("Binding"))
+	runtime.GOMAXPROCS(2)
+	var wg sync.WaitGroup
+	wg.Add(2)
 
-	mx := mux.NewRouter()
-	mx.HandleFunc("/", IndexHandler)
+	//Spawn http handler
+	go func() {
+		defer wg.Done()
 
-	http.ListenAndServe(config.GetString("Binding"), mx)
+		log.Info("Listening at http://" + config.GetString("Binding"))
+
+		mx := mux.NewRouter()
+		mx.HandleFunc("/", IndexHandler)
+
+		http.ListenAndServe(config.GetString("Binding"), mx)
+	} ()
+
+	//Spawn es forwarder
+	go func() {
+		defer wg.Done()
+
+		log.Info("Starting forwarder to " + config.GetString("esURL"))
+
+		for {
+			duration := time.Duration(config.GetInt("PollInterval"))*time.Second
+			time.Sleep(duration)
+
+			log.Debug("Polling ES")
+
+			//Add PUT method to ES host
+		}
+	} ()
+
+	wg.Wait()
+	log.Info("Terminating program")
 }

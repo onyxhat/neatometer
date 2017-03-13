@@ -1,3 +1,6 @@
 {
     "Binding": "0.0.0.0:8080",
+    "esURL": "http://localhost:9200",
+    "esIndex": "NeatoMeter",
+    "PollInterval": 10
 }

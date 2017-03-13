@@ -5,29 +5,43 @@ import (
 	_ "github.com/kidoman/embd/host/rpi"
 	"github.com/kidoman/embd/sensor/bmp180"
 	"encoding/json"
+	log "github.com/Sirupsen/logrus"
+	"github.com/shirou/gopsutil/host"
 )
 
-type Temps struct {
-	Fahrenheit float64
-	Celsius    float64
+func handleErr(err error, errMsg string) {
+	if err != nil {
+		log.Error(errMsg)
+		//os.Exit(-1)
+	}
 }
 
-type SensorData struct {
-	Temp	 Temps
-	Pressure int
-	Altitude float64
-}
-
-func getData() []byte {
+func readSensor() (float64, float64, float64, int) {
 	bus := embd.NewI2CBus(1)
 	sensor := bmp180.New(bus)
 
-	tempc, _ := sensor.Temperature()
+	tempc, err := sensor.Temperature()
+	handleErr(err, "Unable to read temperature")
+
 	tempf := tempc*(9/5)+32
-	altitude, _ := sensor.Altitude()
+
+	altitude, err := sensor.Altitude()
+	handleErr(err, "Unable to read altitude")
+
 	pressure, _ := sensor.Pressure()
+	handleErr(err, "Unable to read pressure")
+
+	return tempc, tempf, altitude, pressure
+}
+
+func getData() []byte {
+	hostInfo, err := host.Info()
+	handleErr(err, "Unable to detect host info")
+
+	tempc, tempf, altitude, pressure := readSensor()
 
 	data := SensorData{
+		ID: hostInfo.HostID,
 		Temp: Temps{
 			Fahrenheit: tempf,
 			Celsius: tempc,
@@ -36,7 +50,8 @@ func getData() []byte {
 		Altitude: altitude,
 	}
 
-	myJson,_ := json.Marshal(data)
+	myJson,err := json.Marshal(data)
+	handleErr(err, "Unable to marshal JSON")
 
 	return myJson
 }
