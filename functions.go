@@ -23,7 +23,7 @@ func readSensor() (float64, float64, float64, int) {
 	tempc, err := sensor.Temperature()
 	handleErr(err, "Unable to read temperature")
 
-	tempf := tempc*(9/5)+32
+	tempf := tempc*1.8+32
 
 	altitude, err := sensor.Altitude()
 	handleErr(err, "Unable to read altitude")
