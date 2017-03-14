@@ -24,6 +24,9 @@ func init() {
 	config.SetDefault("Binding", "0.0.0.0:8080")
 	config.SetDefault("esURL", "http://localhost:9200/neatometer/json/")
 	config.SetDefault("PollInterval", 10)
+	config.SetDefault("LogLevel", "Info")
+
+	log.SetLevel(log.InfoLevel)
 }
 
 func main() {

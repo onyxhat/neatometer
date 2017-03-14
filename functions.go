@@ -59,8 +59,7 @@ func getData() []byte {
 }
 
 func postToElasticSearch(url string) {
-	jsonBody := getData()
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(getData()))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
