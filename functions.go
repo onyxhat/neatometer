@@ -59,14 +59,15 @@ func getData() []byte {
 }
 
 func postToElasticSearch(url string) {
-	jsonBody := getData()
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+	json := getData()
+
+	req, _ := http.NewRequest("PUT", url, bytes.NewBuffer(json))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
-	handleErr(err, ("POST response " + resp.Status))
+	handleErr(err, ("PUT response " + resp.Status))
 	defer resp.Body.Close()
 
-	log.Debug("POST response " + resp.Status)
+	log.Debug("PUT response " + resp.Status)
 }
