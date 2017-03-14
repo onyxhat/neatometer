@@ -22,8 +22,8 @@ func init() {
 	config.ReadInConfig()
 
 	config.SetDefault("Binding", "0.0.0.0:8080")
-	config.SetDefault("esURL", "http://localhost:9200")
-	config.SetDefault("esIndex", "NeatoMeter")
+	config.SetDefault("esURL", "http://localhost:9200/neatometer/json/")
+	config.SetDefault("PollInterval", 10)
 }
 
 func main() {
@@ -47,15 +47,11 @@ func main() {
 	go func() {
 		defer wg.Done()
 
-		log.Info("Starting forwarder to " + config.GetString("esURL"))
-
 		for {
+			postToElasticSearch(config.GetString("esURL"))
+
 			duration := time.Duration(config.GetInt("PollInterval"))*time.Second
 			time.Sleep(duration)
-
-			log.Debug("Polling ES")
-
-			//Add PUT method to ES host
 		}
 	} ()
 

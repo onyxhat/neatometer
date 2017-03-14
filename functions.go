@@ -7,6 +7,8 @@ import (
 	"encoding/json"
 	log "github.com/Sirupsen/logrus"
 	"github.com/shirou/gopsutil/host"
+	"bytes"
+	"net/http"
 )
 
 func handleErr(err error, errMsg string) {
@@ -54,4 +56,17 @@ func getData() []byte {
 	handleErr(err, "Unable to marshal JSON")
 
 	return myJson
+}
+
+func postToElasticSearch(url string) {
+	jsonBody := getData()
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	handleErr(err, ("POST response " + resp.Status))
+	defer resp.Body.Close()
+
+	log.Debug("POST response " + resp.Status)
 }
