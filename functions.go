@@ -58,7 +58,7 @@ func getData() []byte {
 	tempc, tempf, altitude, pressure := readSensor()
 
 	data := SensorData{
-		Timestamp: time.Now().UTC().Format("2006-01-02T15:04:05Z07:00"),
+		Timestamp: time.Now().Format(time.RFC3339),
 		DeviceId: hostInfo.HostID,
 		Temperature: Temps{
 			Fahrenheit: tempf,
@@ -76,14 +76,12 @@ func getData() []byte {
 
 func postToElasticSearch(url string) {
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(getData()))
-	handleErr(err, "Failed to reach " + url)
-	if req != nil {
+	if (err == nil) {
 		req.Header.Set("Content-Type", "application/json")
 
 		client := &http.Client{}
 		resp, err := client.Do(req)
-		handleErr(err, ("POST response " + resp.Status))
-		defer resp.Body.Close()
+		if (err == nil) {resp.Body.Close()}
 
 		log.Debug("POST response " + resp.Status)
 	} else {
