@@ -1,6 +1,6 @@
 {
     "LogLevel": "INFO",
     "Binding": "0.0.0.0:8080",
-    "esURL": "http://localhost:9200/neatometer/json/",
+    "esURL": "http://myelastichost:9200/neatometer/json/",
     "PollInterval": 10
 }

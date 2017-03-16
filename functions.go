@@ -9,12 +9,27 @@ import (
 	"github.com/shirou/gopsutil/host"
 	"bytes"
 	"net/http"
+	"time"
 )
+
+func setLogLevel(level string) {
+	switch level {
+	case "DEBUG":
+		log.SetLevel(log.DebugLevel)
+	case "INFO":
+		log.SetLevel(log.InfoLevel)
+	case "WARN":
+		log.SetLevel(log.WarnLevel)
+	case "ERROR":
+		log.SetLevel(log.ErrorLevel)
+	}
+}
 
 func handleErr(err error, errMsg string) {
 	if err != nil {
 		log.Error(errMsg)
 		//os.Exit(-1)
+		return;
 	}
 }
 
@@ -43,7 +58,8 @@ func getData() []byte {
 	tempc, tempf, altitude, pressure := readSensor()
 
 	data := SensorData{
-		ID: hostInfo.HostID,
+		Timestamp: time.Now().UTC().Format("2006-01-02T15:04:05Z07:00"),
+		DeviceId: hostInfo.HostID,
 		Temperature: Temps{
 			Fahrenheit: tempf,
 			Celsius: tempc,
@@ -59,13 +75,18 @@ func getData() []byte {
 }
 
 func postToElasticSearch(url string) {
-	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(getData()))
-	req.Header.Set("Content-Type", "application/json")
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(getData()))
+	handleErr(err, "Failed to reach " + url)
+	if req != nil {
+		req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	handleErr(err, ("POST response " + resp.Status))
-	defer resp.Body.Close()
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		handleErr(err, ("POST response " + resp.Status))
+		defer resp.Body.Close()
 
-	log.Debug("POST response " + resp.Status)
+		log.Debug("POST response " + resp.Status)
+	} else {
+		log.Error("Unable to establish request to " + url)
+	}
 }

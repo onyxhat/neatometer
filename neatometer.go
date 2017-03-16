@@ -22,11 +22,11 @@ func init() {
 	config.ReadInConfig()
 
 	config.SetDefault("Binding", "0.0.0.0:8080")
-	config.SetDefault("esURL", "http://localhost:9200/neatometer/json/")
+	config.SetDefault("esURL", "http://myelastichost:9200/neatometer/sensordata/")
 	config.SetDefault("PollInterval", 10)
-	config.SetDefault("LogLevel", "Info")
+	config.SetDefault("LogLevel", "INFO")
 
-	log.SetLevel(log.InfoLevel)
+	setLogLevel(config.GetString("LogLevel"))
 }
 
 func main() {
@@ -51,10 +51,10 @@ func main() {
 		defer wg.Done()
 
 		for {
-			postToElasticSearch(config.GetString("esURL"))
-
 			duration := time.Duration(config.GetInt("PollInterval"))*time.Second
 			time.Sleep(duration)
+
+			postToElasticSearch(config.GetString("esURL"))
 		}
 	} ()
 
