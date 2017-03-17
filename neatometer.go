@@ -21,6 +21,8 @@ func init() {
 	config.SetConfigName("config")
 	config.ReadInConfig()
 
+	config.SetDefault("EnableJSONServer", true)
+	config.SetDefault("EnableESForwarder", true)
 	config.SetDefault("Binding", "0.0.0.0:8080")
 	config.SetDefault("esURL", "http://myelastichost:9200/neatometer/sensordata/")
 	config.SetDefault("PollInterval", 10)
@@ -35,28 +37,32 @@ func main() {
 	wg.Add(2)
 
 	//Spawn http handler
-	go func() {
-		defer wg.Done()
+	if config.GetBool("EnableJSONServer") {
+		go func() {
+			defer wg.Done()
 
-		log.Info("Listening at http://" + config.GetString("Binding"))
+			log.Info("Listening at http://" + config.GetString("Binding"))
 
-		mx := mux.NewRouter()
-		mx.HandleFunc("/", IndexHandler)
+			mx := mux.NewRouter()
+			mx.HandleFunc("/", IndexHandler)
 
-		http.ListenAndServe(config.GetString("Binding"), mx)
-	} ()
+			http.ListenAndServe(config.GetString("Binding"), mx)
+		}()
+	}
 
 	//Spawn es forwarder
-	go func() {
-		defer wg.Done()
+	if config.GetBool("EnableESForwarder") {
+		go func() {
+			defer wg.Done()
 
-		for {
-			duration := time.Duration(config.GetInt("PollInterval"))*time.Second
-			time.Sleep(duration)
+			for {
+				duration := time.Duration(config.GetInt("PollInterval")) * time.Second
+				time.Sleep(duration)
 
-			newPostES(config.GetString("esURL"))
-		}
-	} ()
+				newPostES(config.GetString("esURL"))
+			}
+		}()
+	}
 
 	wg.Wait()
 	log.Info("Terminating program")
