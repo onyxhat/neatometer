@@ -12,3 +12,11 @@ type SensorData struct {
 	Pressure	int	`json:"pressure"`
 	Altitude	float64	`json:"altitude"`
 }
+
+type Block struct {
+	Try     func()
+	Catch   func(Exception)
+	Finally func()
+}
+
+type Exception interface{}

@@ -54,7 +54,7 @@ func main() {
 			duration := time.Duration(config.GetInt("PollInterval"))*time.Second
 			time.Sleep(duration)
 
-			postToElasticSearch(config.GetString("esURL"))
+			newPostES(config.GetString("esURL"))
 		}
 	} ()
 

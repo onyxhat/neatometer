@@ -25,35 +25,61 @@ func setLogLevel(level string) {
 	}
 }
 
-func handleErr(err error, errMsg string) {
+func handleErr(err error) {
 	if err != nil {
-		log.Error(errMsg)
-		//os.Exit(-1)
-		return;
+		log.Error(err)
 	}
+}
+
+/*
+Try/Catch/Finally Implementation
+Block{
+	Try: func() {
+
+	},
+	Catch: func(e Exception) {
+
+	},
+	Finally: func() {
+
+	},
+}.Do()
+ */
+
+func Throw(up Exception) {
+	panic(up)
+}
+
+func (tcf Block) Do() {
+	if tcf.Finally != nil {
+
+		defer tcf.Finally()
+	}
+	if tcf.Catch != nil {
+		defer func() {
+			if r := recover(); r != nil {
+				tcf.Catch(r)
+			}
+		}()
+	}
+	tcf.Try()
 }
 
 func readSensor() (float64, float64, float64, int) {
 	bus := embd.NewI2CBus(1)
 	sensor := bmp180.New(bus)
 
-	tempc, err := sensor.Temperature()
-	handleErr(err, "Unable to read temperature")
-
+	tempc, _ := sensor.Temperature()
 	tempf := tempc*1.8+32
-
-	altitude, err := sensor.Altitude()
-	handleErr(err, "Unable to read altitude")
-
+	altitude, _ := sensor.Altitude()
 	pressure, _ := sensor.Pressure()
-	handleErr(err, "Unable to read pressure")
 
 	return tempc, tempf, altitude, pressure
 }
 
 func getData() []byte {
 	hostInfo, err := host.Info()
-	handleErr(err, "Unable to detect host info")
+	handleErr(err)
 
 	tempc, tempf, altitude, pressure := readSensor()
 
@@ -69,22 +95,23 @@ func getData() []byte {
 	}
 
 	myJson,err := json.Marshal(data)
-	handleErr(err, "Unable to marshal JSON")
+	handleErr(err)
 
 	return myJson
 }
 
-func postToElasticSearch(url string) {
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(getData()))
-	if (err == nil) {
-		req.Header.Set("Content-Type", "application/json")
-
-		client := &http.Client{}
-		resp, err := client.Do(req)
-		if (err == nil) {resp.Body.Close()}
-
-		log.Debug("POST response " + resp.Status)
-	} else {
-		log.Error("Unable to establish request to " + url)
-	}
+func newPostES(url string) {
+	Block{
+		Try: func() {
+			resp, err := http.Post(url, "application/json", bytes.NewBuffer(getData()))
+			handleErr(err)
+			defer resp.Body.Close()
+		},
+		Catch: func(e Exception) {
+			log.Error("POST to ES failed")
+		},
+		Finally: func() {
+			log.Debug("POST to ES succeeded")
+		},
+	}.Do()
 }
