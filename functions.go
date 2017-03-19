@@ -115,3 +115,19 @@ func newPostES(url string) {
 		},
 	}.Do()
 }
+
+func isTrue(val bool) int {
+	if val == true {
+		return 1
+	} else {
+		return 0
+	}
+}
+
+func countBool(myBool []bool) int {
+	var count int
+	for _, v := range myBool {
+		count += isTrue(v)
+	}
+	return count
+}
