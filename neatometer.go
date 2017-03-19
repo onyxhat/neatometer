@@ -27,21 +27,13 @@ func init() {
 	config.SetDefault("PollInterval", 10)
 	config.SetDefault("LogLevel", "INFO")
 
-	//Disbale feature for non-configured setting
-	if config.GetString("esURL") != "" {
-		config.Set("EnableESForwarder", false)
-	}
-
 	setLogLevel(config.GetString("LogLevel"))
 }
 
 func main() {
-	f := []bool{config.GetBool("EnableJSONServer"), config.GetBool("EnableESForwarder")}
-	fn := countBool(f)
-
-	runtime.GOMAXPROCS(fn)
+	runtime.GOMAXPROCS(2)
 	var wg sync.WaitGroup
-	wg.Add(fn)
+	wg.Add(2)
 
 	//Spawn http handler
 	if config.GetBool("EnableJSONServer") {
