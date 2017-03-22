@@ -4,6 +4,7 @@ import (
 	log "github.com/Sirupsen/logrus"
 	"github.com/gorilla/mux"
 	"github.com/kardianos/osext"
+	"github.com/shirou/gopsutil/host"
 	config "github.com/spf13/viper"
 	"net/http"
 	"runtime"
@@ -12,6 +13,9 @@ import (
 )
 
 func init() {
+	hostInfo, err := host.Info()
+	handleErr(err)
+
 	exePath, err := osext.ExecutableFolder()
 	if err != nil {
 		exePath = ".\\"
@@ -21,6 +25,7 @@ func init() {
 	config.SetConfigName("config")
 	config.ReadInConfig()
 
+	config.SetDefault("DeviceID", hostInfo.HostID)
 	config.SetDefault("Binding", "0.0.0.0:8080")
 	config.SetDefault("EnableJSONServer", true)
 	config.SetDefault("EnableESForwarder", true)
@@ -47,7 +52,9 @@ func main() {
 
 			http.ListenAndServe(config.GetString("Binding"), mx)
 		}()
-	} else { wg.Done() }
+	} else {
+		wg.Done()
+	}
 
 	//Spawn es forwarder
 	if config.GetBool("EnableESForwarder") {
@@ -58,10 +65,12 @@ func main() {
 				duration := config.GetDuration("PollInterval") * time.Second
 				time.Sleep(duration)
 
-				newPostES(config.GetString("esURL"))
+				newPostES()
 			}
 		}()
-	} else { wg.Done() }
+	} else {
+		wg.Done()
+	}
 
 	wg.Wait()
 	log.Info("Terminating program")

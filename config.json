@@ -1,8 +1,9 @@
 {
+  //"DeviceID": "MyCustomNodeNmae",
+  "Binding": "0.0.0.0:8080",
   "EnableJSONServer": true,
   "EnableESForwarder": true,
   "LogLevel": "INFO",
-  "Binding": "0.0.0.0:8080",
   "esURL": "http://myelastichost:9200/neatometer/json/",
   "PollInterval": 10
 }

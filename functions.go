@@ -1,13 +1,13 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	log "github.com/Sirupsen/logrus"
 	"github.com/kidoman/embd"
 	_ "github.com/kidoman/embd/host/rpi"
 	"github.com/kidoman/embd/sensor/bmp180"
-	"encoding/json"
-	log "github.com/Sirupsen/logrus"
-	"github.com/shirou/gopsutil/host"
-	"bytes"
+	config "github.com/spf13/viper"
 	"net/http"
 	"time"
 )
@@ -44,7 +44,7 @@ Block{
 
 	},
 }.Do()
- */
+*/
 
 func Throw(up Exception) {
 	panic(up)
@@ -70,7 +70,7 @@ func readSensor() (float64, float64, float64, int) {
 	sensor := bmp180.New(bus)
 
 	tempc, _ := sensor.Temperature()
-	tempf := tempc*1.8+32
+	tempf := tempc*1.8 + 32
 	altitude, _ := sensor.Altitude()
 	pressure, _ := sensor.Pressure()
 
@@ -78,32 +78,29 @@ func readSensor() (float64, float64, float64, int) {
 }
 
 func getData() []byte {
-	hostInfo, err := host.Info()
-	handleErr(err)
-
 	tempc, tempf, altitude, pressure := readSensor()
 
 	data := SensorData{
 		Timestamp: time.Now().Format(time.RFC3339),
-		DeviceId: hostInfo.HostID,
+		DeviceId:  config.GetString("DeviceID"),
 		Temperature: Temps{
 			Fahrenheit: tempf,
-			Celsius: tempc,
+			Celsius:    tempc,
 		},
 		Pressure: pressure,
 		Altitude: altitude,
 	}
 
-	myJson,err := json.Marshal(data)
+	myJson, err := json.Marshal(data)
 	handleErr(err)
 
 	return myJson
 }
 
-func newPostES(url string) {
+func newPostES() {
 	Block{
 		Try: func() {
-			resp, err := http.Post(url, "application/json", bytes.NewBuffer(getData()))
+			resp, err := http.Post(config.GetString("esURL"), "application/json", bytes.NewBuffer(getData()))
 			handleErr(err)
 			defer resp.Body.Close()
 		},
