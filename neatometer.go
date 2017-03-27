@@ -60,11 +60,10 @@ func main() {
 	if config.GetBool("EnableESForwarder") {
 		go func() {
 			defer wg.Done()
+			duration := config.GetDuration("PollInterval") * time.Second
 
 			for {
-				duration := config.GetDuration("PollInterval") * time.Second
 				time.Sleep(duration)
-
 				newPostES()
 			}
 		}()
