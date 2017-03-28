@@ -4,6 +4,7 @@
   "EnableJSONServer": true,
   "EnableESForwarder": true,
   "LogLevel": "INFO",
-  "esURL": "http://myelastichost:9200/neatometer/json/",
+  "ElasticSearchUrl": "http://myelastichost:9200",
+  "ElasticSeachIndex": "neatometer",
   "PollInterval": 10
 }

@@ -10,6 +10,7 @@ import (
 	config "github.com/spf13/viper"
 	"net/http"
 	"time"
+	"fmt"
 )
 
 func setLogLevel(level string) {
@@ -98,9 +99,13 @@ func getData() []byte {
 }
 
 func newPostES() {
+	baseUrl := config.GetString("ElasticSearchUrl")
+	esIndex := config.GetString("ElasticSeachIndex")
+	postUrl := fmt.Sprintf("%s/%s-%d-%d-%d/json/", baseUrl, esIndex, time.Now().Year(), time.Now().Month(), time.Now().Day())
+
 	Block{
 		Try: func() {
-			resp, err := http.Post(config.GetString("esURL"), "application/json", bytes.NewBuffer(getData()))
+			resp, err := http.Post(postUrl, "application/json", bytes.NewBuffer(getData()))
 			handleErr(err)
 			defer resp.Body.Close()
 		},
